@@ -1,11 +1,13 @@
-<main class="flow">
+<main class="flow flow--checkout">
   <nav class="checkout-nav" aria-label="Tiến trình mua hàng">
-    <a routerLink="/products" class="brand">✿ Velura</a
+    <a routerLink="/" class="brand">✿ Velura</a
     ><span><a routerLink="/cart">Giỏ hàng</a> › <b>Thanh toán</b> › Hoàn tất</span
     ><small>♧ Thanh toán bảo mật</small>
   </nav>
-  <h1>Thanh toán</h1>
-  <p class="muted intro">Hoàn tất thông tin để đơn hàng được giao nhanh và chính xác.</p>
+  <header class="flow-header flow-header--checkout">
+    <h1>Thanh toán</h1>
+    <p class="muted intro">Hoàn tất thông tin để đơn hàng được giao nhanh và chính xác.</p>
+  </header>
   @if (!lines().length) {
     <section class="panel empty">
       <h2>Giỏ hàng đang trống</h2>
@@ -22,7 +24,12 @@
         }
         @switch (step()) {
           @case ('form') {
-            <form id="checkout-form" class="panel" (ngSubmit)="place()" novalidate>
+            <form
+              id="checkout-form"
+              class="panel checkout-form-card"
+              (ngSubmit)="place()"
+              novalidate
+            >
               <h2>Thông tin giao hàng</h2>
               <p class="muted">Điền một lần, kiểm tra và hoàn tất ngay tại đây.</p>
               <fieldset [disabled]="busy()">
@@ -259,7 +266,9 @@
             <section class="panel payment-page">
               <span class="badge">Thanh toán trực tuyến</span>
               <h2>Thanh toán qua VNPay</h2>
-              <p class="payment-page__order">Mã đơn <strong>{{ order()?.id }}</strong></p>
+              <p class="payment-page__order">
+                Mã đơn <strong>{{ order()?.id }}</strong>
+              </p>
               <div class="qr-payment">
                 <div class="qr-code" role="img" aria-label="Mã QR thanh toán VNPay"></div>
                 <div class="qr-payment__details">
@@ -274,11 +283,11 @@
               <div class="payment-simulation">
                 <span class="payment-simulation__label">Mô phỏng kết quả thanh toán</span>
                 <div class="actions">
-                <button (click)="result('paid')" [disabled]="seconds() === 0">
-                  Thanh toán thành công</button
-                ><button class="secondary" (click)="result('failed')">Thất bại</button
-                ><button class="secondary" (click)="result('cancelled')">Hủy giao dịch</button
-                ><button class="secondary" (click)="result('expired')">Hết hạn</button>
+                  <button (click)="result('paid')" [disabled]="seconds() === 0">
+                    Thanh toán thành công</button
+                  ><button class="secondary" (click)="result('failed')">Thất bại</button
+                  ><button class="secondary" (click)="result('cancelled')">Hủy giao dịch</button
+                  ><button class="secondary" (click)="result('expired')">Hết hạn</button>
                 </div>
               </div>
             </section>
@@ -324,9 +333,7 @@
               <p>
                 Tổng thanh toán: <strong>{{ money(order()?.total) }}</strong>
               </p>
-              <p class="muted">
-                Bạn có thể tra cứu đơn hàng bằng số điện thoại đã đặt hàng.
-              </p>
+              <p class="muted">Bạn có thể tra cứu đơn hàng bằng số điện thoại đã đặt hàng.</p>
               <div class="actions">
                 <a
                   class="action"
@@ -375,9 +382,7 @@
             <section class="panel success">
               <div class="success-icon">✓</div>
               <h2>Hoàn tất thiết lập</h2>
-              <p>
-                Tài khoản của bạn đã sẵn sàng. Đăng nhập để quản lý đơn hàng thuận tiện hơn.
-              </p>
+              <p>Tài khoản của bạn đã sẵn sàng. Đăng nhập để quản lý đơn hàng thuận tiện hơn.</p>
 
               <div class="actions">
                 <a class="action" routerLink="/auth/signin">Đăng nhập</a
@@ -388,55 +393,55 @@
         }
       </div>
       @if (step() === 'form') {
-      <aside class="panel summary">
-        <h2>Đơn hàng của bạn</h2>
-        @for (line of lines(); track $index) {
-          <article
-            class="line"
-            [style.background]="$index === 0 && stockProblem() ? '#fff0ec' : ''"
-          >
-            <img [src]="image(line.product_image)" [alt]="line.product_name" />
-            <div>
-              <h3>{{ line.product_name }}</h3>
-              <p class="muted">{{ line.size }} / {{ line.color }} · SL {{ line.quantity }}</p>
-              <strong>{{ money(line.unit_price * line.quantity) }}</strong>
-              @if ($index === 0 && stockProblem()) {
-                <p class="error" role="alert">{{ stockProblem() }}</p>
-              }
-            </div>
-          </article>
-        }
-        <div class="row">
-          <span>Tiền hàng</span><span>{{ money(quote().subtotal) }}</span>
-        </div>
-        <div class="row">
-          <span>Phí vận chuyển</span
-          ><span>{{ quote().shipping ? money(quote().shipping) : 'Miễn phí' }}</span>
-        </div>
-        <div class="row">
-          <span>Voucher tự động</span><span>−{{ money(quote().discount) }}</span>
-        </div>
-        <p class="muted">{{ quote().voucher }}</p>
-        <div class="row total">
-          <span>Tổng thanh toán</span><span>{{ money(quote().total) }}</span>
-        </div>
-        <p class="muted">
-          Đổi / trả trong 30 ngày từ khi giao thành công. Tối đa 2 lượt mỗi sản phẩm.
-        </p>
-        @if (voucherNotice()) {
-          <p class="muted" role="status">{{ voucherNotice() }}</p>
-        }
-        <button class="checkout-submit" type="submit" form="checkout-form" [disabled]="busy()">
-          {{
-            busy()
-              ? 'Đang xử lý…'
-              : payment === 'COD'
-                ? 'Hoàn tất đơn hàng →'
-                : 'Thanh toán qua VNPay →'
-          }}
-        </button>
-        <a class="edit-cart" routerLink="/cart">Chỉnh sửa giỏ hàng</a>
-      </aside>
+        <aside class="panel summary checkout-summary">
+          <h2>Đơn hàng của bạn</h2>
+          @for (line of lines(); track $index) {
+            <article
+              class="line"
+              [style.background]="$index === 0 && stockProblem() ? '#fff0ec' : ''"
+            >
+              <img [src]="image(line.product_image)" [alt]="line.product_name" />
+              <div>
+                <h3>{{ line.product_name }}</h3>
+                <p class="muted">{{ line.size }} / {{ line.color }} · SL {{ line.quantity }}</p>
+                <strong>{{ money(line.unit_price * line.quantity) }}</strong>
+                @if ($index === 0 && stockProblem()) {
+                  <p class="error" role="alert">{{ stockProblem() }}</p>
+                }
+              </div>
+            </article>
+          }
+          <div class="row">
+            <span>Tiền hàng</span><span>{{ money(quote().subtotal) }}</span>
+          </div>
+          <div class="row">
+            <span>Phí vận chuyển</span
+            ><span>{{ quote().shipping ? money(quote().shipping) : 'Miễn phí' }}</span>
+          </div>
+          <div class="row">
+            <span>Voucher tự động</span><span>−{{ money(quote().discount) }}</span>
+          </div>
+          <p class="muted">{{ quote().voucher }}</p>
+          <div class="row total">
+            <span>Tổng thanh toán</span><span>{{ money(quote().total) }}</span>
+          </div>
+          <p class="muted">
+            Đổi / trả trong 30 ngày từ khi giao thành công. Tối đa 2 lượt mỗi sản phẩm.
+          </p>
+          @if (voucherNotice()) {
+            <p class="muted" role="status">{{ voucherNotice() }}</p>
+          }
+          <button class="checkout-submit" type="submit" form="checkout-form" [disabled]="busy()">
+            {{
+              busy()
+                ? 'Đang xử lý…'
+                : payment === 'COD'
+                  ? 'Hoàn tất đơn hàng →'
+                  : 'Thanh toán qua VNPay →'
+            }}
+          </button>
+          <a class="edit-cart" routerLink="/cart">Chỉnh sửa giỏ hàng</a>
+        </aside>
       }
     </div>
   }

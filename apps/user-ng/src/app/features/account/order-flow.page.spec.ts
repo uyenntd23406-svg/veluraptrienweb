@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { DEMO_LINES, DemoOrder, PurchaseDemoStore } from '../../core/services/purchase-demo.store';
 import { stubActivatedRoute } from '../../../testing/storefront-testing';
 import { OrderFlowPage } from './order-flow.page';
@@ -39,6 +39,7 @@ describe('OrderFlowPage with mocked Model', () => {
   };
   beforeEach(async () => {
     model.member.set(false);
+    model.verifiedPhone.set('');
     await TestBed.configureTestingModule({
       imports: [OrderFlowPage],
       providers: [
@@ -47,6 +48,7 @@ describe('OrderFlowPage with mocked Model', () => {
         { provide: PurchaseDemoStore, useValue: model },
       ],
     }).compileComponents();
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
   });
   afterEach(() => TestBed.resetTestingModule());
   it('does not expose guest order details from a direct link before OTP', () => {
@@ -56,6 +58,14 @@ describe('OrderFlowPage with mocked Model', () => {
     expect(fixture.componentInstance.order()).toBeNull();
     expect(fixture.componentInstance.visibleOrders()).toEqual([]);
     expect(fixture.nativeElement.textContent).not.toContain('756.000');
+  });
+  it('keeps an OTP-verified guest authorized across canonical order routes', () => {
+    model.verifiedPhone.set('0901234567');
+    const fixture = TestBed.createComponent(OrderFlowPage);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.verified()).toBe(true);
+    expect(fixture.componentInstance.view()).toBe('detail');
+    expect(fixture.componentInstance.order()?.id).toBe(order.id);
   });
   it('hides cancellation as soon as the authorized order enters preparation', () => {
     const fixture = TestBed.createComponent(OrderFlowPage);

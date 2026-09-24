@@ -22,7 +22,12 @@ import { isGuestPreview } from '../../core/utils/preview-mode';
   selector: 'app-order-flow',
   imports: [FormsModule, RouterLink],
   templateUrl: './order-flow.page.html',
-  styleUrl: '../shared/purchase-flow.css',
+  styleUrls: [
+    '../shared/purchase-flow.css',
+    '../shared/purchase-flow-forms.css',
+    '../shared/purchase-flow-layout.css',
+    '../shared/purchase-flow-responsive.css',
+  ],
 })
 export class OrderFlowPage {
   readonly model = inject(PurchaseDemoStore);
@@ -140,6 +145,10 @@ export class OrderFlowPage {
       this.verified.set(true);
       this.view.set(this.returnsEntry ? 'requests' : 'list');
       if (id) this.open(id);
+    } else if (this.model.verifiedPhone()) {
+      this.verified.set(true);
+      this.view.set(this.returnsEntry ? 'requests' : 'list');
+      if (id) this.open(id);
     } else if (id) {
       this.mode = 'code';
       this.query = id;
@@ -207,8 +216,8 @@ export class OrderFlowPage {
       this.error.set((error as Error).message);
     }
   }
-  /** Access is checked even for direct navigation or a stale selected order. */
-  open(id: string): void {
+  /** Open an authorized order on its canonical detail URL, unless an internal after-sales view owns the URL. */
+  open(id: string, updateUrl = true): void {
     const order = this.model.orders().find((row) => row.id === id);
     if (!order || !this.authorized(order)) {
       this.error.set('Vui lòng xác thực chủ đơn trước khi xem chi tiết.');
@@ -218,11 +227,11 @@ export class OrderFlowPage {
     this.selectedId.set(id);
     this.error.set('');
     this.view.set('detail');
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { order: id },
-      replaceUrl: true,
-    });
+    if (updateUrl) {
+      void this.router.navigate([this.model.member() ? '/account/orders' : '/guest/orders', id], {
+        replaceUrl: true,
+      });
+    }
   }
   /** Begin cancellation only before preparation, preserving a readable confirmation. */
   startCancel(): void {
@@ -378,7 +387,7 @@ export class OrderFlowPage {
   openRequest(request: DemoReturn): void {
     const order = this.model.orders().find((order) => order.id === request.orderId);
     if (!order || !this.authorized(order)) return;
-    this.open(order.id);
+    this.open(order.id, false);
     this.track(request);
   }
   /** Review progression follows the refund or replacement timeline. */

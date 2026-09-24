@@ -28,7 +28,12 @@ import { formatVnd, toPublicAsset } from '../../core/utils/money';
   selector: 'app-purchase-flow',
   imports: [FormsModule, RouterLink],
   templateUrl: './purchase-flow.page.html',
-  styleUrl: '../shared/purchase-flow.css',
+  styleUrls: [
+    '../shared/purchase-flow.css',
+    '../shared/purchase-flow-forms.css',
+    '../shared/purchase-flow-layout.css',
+    '../shared/purchase-flow-responsive.css',
+  ],
 })
 export class PurchaseFlowPage {
   readonly model = inject(PurchaseDemoStore);
