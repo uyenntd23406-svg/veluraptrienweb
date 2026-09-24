@@ -4,6 +4,10 @@ import { CartLine, CartStore, GroupedCartItem } from '../../core/services/cart.s
 import { formatVnd, toPublicAsset } from '../../core/utils/money';
 import { showToast } from '../../core/utils/toast';
 import { useBodyClass } from '../../core/utils/body-class';
+import { CatalogService } from '../../core/services/catalog.service';
+import { AuthService } from '../../core/services/auth.service';
+import { ProductSummary, ProductVariant } from '../../core/models/product.interface';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 const ITEMS_PER_PAGE = 5;
 const SELECTED_KEY = 'selected_cart_items';
@@ -20,6 +24,11 @@ type PageItem = { kind: 'page'; value: number } | { kind: 'dots'; value: number 
 export class CartPage {
   private readonly cart = inject(CartStore);
   private readonly router = inject(Router);
+  private readonly catalog = inject(CatalogService);
+  private readonly auth = inject(AuthService);
+  readonly products = signal<ProductSummary[]>([]);
+  readonly stockLoading = signal(true);
+  readonly stockError = signal('');
 
   readonly currentPage = signal(1);
   readonly selectedIds = signal<string[]>(this.readSelectedIds());
@@ -67,6 +76,47 @@ export class CartPage {
   constructor() {
     useBodyClass('page-cart');
     this.syncSelection(this.groupedItems());
+    this.catalog.getProducts().pipe(takeUntilDestroyed()).subscribe({
+      next: products => { this.products.set(products); this.stockLoading.set(false); },
+      error: () => { this.stockLoading.set(false); this.stockError.set('Chưa tải được tồn kho. Vui lòng tải lại trang để kiểm tra trước khi thanh toán.'); },
+    });
+  }
+
+  /** Offer actual variant pairs from the catalog, never inventing a size/color ID. */
+  variants(item: GroupedCartItem): ProductVariant[] { return this.products().find(product => product.product_id === item.product_id)?.variants || []; }
+
+  /** Available inventory excludes quantities already reserved by other orders. */
+  stock(variant: ProductVariant): number { return Math.max(0, (variant.stock_quantity || 0) - (variant.reserved_quantity || 0)); }
+
+  /** Explain unavailable variants and quantity conflicts beside the affected line. */
+  stockIssue(item: GroupedCartItem): string {
+    if (this.stockLoading()) return 'Đang kiểm tra tồn kho…';
+    if (this.stockError()) return this.stockError();
+    const lines = item.is_combo ? item.items || [] : [item];
+    for (const line of lines) {
+      const variant = this.products().find(product => product.product_id === line.product_id)?.variants?.find(row => row.variant_id === line.variant_id);
+      if (!variant) return 'Chưa xác định được tồn kho của sản phẩm này.';
+      if (!this.stock(variant)) return `Sản phẩm này vừa hết size ${line.size || 'đã chọn'} / ${line.color || ''}.`;
+      if (line.quantity > this.stock(variant)) return `Số lượng vượt tồn kho. Chỉ còn ${this.stock(variant)} sản phẩm.`;
+    }
+    return '';
+  }
+
+  /** Change a catalog variant and merge matching cart rows without losing the selection. */
+  changeVariant(item: GroupedCartItem, event: Event): void {
+    const id = (event.target as HTMLSelectElement).value;
+    const variant = this.variants(item).find(row => row.variant_id === id);
+    if (!variant || !this.stock(variant) || id === item.variant_id || item.is_combo) return;
+    const selected = this.isSelected(item);
+    const lines = this.cart.items().filter(line => line.variant_id !== item.variant_id || line.combo_id);
+    const existing = lines.find(line => line.variant_id === id && !line.combo_id);
+    if (existing) {
+      this.cart.replaceItems(lines.map(line => line === existing ? { ...line, quantity: line.quantity + item.quantity } : line));
+    } else {
+      this.cart.replaceItems([...lines, { ...item, variant_id: id, size: variant.size, color: variant.color }]);
+    }
+    this.selectedIds.update(ids => [...new Set([...ids.filter(value => value !== item.variant_id), ...(selected ? [id] : [])])]);
+    this.persistSelected(); this.clampPage();
   }
 
   /**
@@ -111,6 +161,9 @@ export class CartPage {
    * Steps the original cart quantity control for a line or combo set.
    */
   changeQty(item: GroupedCartItem, delta: number): void {
+    if (delta > 0 && this.stockIssue({ ...item, quantity: item.quantity + delta, items: item.items?.map(line => ({ ...line, quantity: line.quantity + delta })) })) {
+      showToast('Không thể tăng số lượng vượt tồn kho.'); return;
+    }
     this.cart.updateQty(item.variant_id, item.quantity + delta);
     this.clampPage();
   }
@@ -154,11 +207,12 @@ export class CartPage {
       showToast('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
       return;
     }
+    if (selected.some(item => this.stockIssue(item))) { showToast('Kiểm tra các sản phẩm được cảnh báo trước khi thanh toán.'); return; }
     sessionStorage.setItem(CHECKOUT_ITEMS_KEY, JSON.stringify(this.cart.expandGroupedItems(selected)));
     localStorage.removeItem('checkout_discount');
     localStorage.removeItem('checkout_voucher_id');
     localStorage.removeItem('checkout_voucher_code');
-    void this.router.navigateByUrl('/checkout/shipping');
+    void this.router.navigateByUrl(this.auth.isLoggedIn() ? '/checkout/user' : '/checkout/guest');
   }
 
   /**

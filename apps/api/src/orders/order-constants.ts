@@ -1,22 +1,28 @@
 /** Canonical order status values. */
 export const ORDER_STATUSES = [
   "pending",
+  "waiting_payment",
   "confirmed",
   "preparing",
+  "processing",
   "shipping",
   "delivered",
   "failed_delivery",
+  "delivery_failed",
   "cancelled",
   "completed"
 ];
 
 /** Allowed order status transitions. */
 export const ORDER_TRANSITIONS: Record<string, string[]> = {
-  pending: ["confirmed", "cancelled"],
-  confirmed: ["preparing", "cancelled"],
+  pending: ["confirmed", "cancelled", "waiting_payment"],
+  waiting_payment: ["confirmed", "cancelled"],
+  confirmed: ["preparing", "processing", "cancelled"],
   preparing: ["shipping", "cancelled"],
-  shipping: ["delivered", "failed_delivery"],
+  processing: ["shipping", "cancelled"],
+  shipping: ["delivered", "failed_delivery", "delivery_failed"],
   failed_delivery: ["shipping", "cancelled"],
+  delivery_failed: ["shipping", "cancelled"],
   delivered: ["completed"],
   cancelled: [],
   completed: []

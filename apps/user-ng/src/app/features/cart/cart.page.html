@@ -62,10 +62,16 @@
                       <span class="cart-item__tag" style="background: #f4e4dc; color: var(--terracotta); font-weight: 500;">Set phối đồ gợi ý</span>
                       <span class="cart-item__tag" style="white-space: normal; line-height: 1.4;">Gồm: {{ comboIncludes(item) }}</span>
                     } @else {
-                      <span class="cart-item__tag">Size: {{ item.size || 'M' }}</span>
-                      <span class="cart-item__tag">Màu: {{ item.color || 'Mặc định' }}</span>
+                      <label>Size / Màu
+                        <select [value]="item.variant_id" (change)="changeVariant(item, $event)" [disabled]="stockLoading()" style="padding: 8px; max-width: 100%; border: 1px solid #d9cec4; border-radius: 6px; background: white;">
+                          @for (variant of variants(item); track variant.variant_id) {
+                            <option [value]="variant.variant_id" [disabled]="stock(variant) === 0">{{ variant.size }} / {{ variant.color }}{{ stock(variant) === 0 ? ' · Hết hàng' : '' }}</option>
+                          } @empty { <option [value]="item.variant_id">{{ item.size }} / {{ item.color }}</option> }
+                        </select>
+                      </label>
                     }
                   </div>
+                  @if (stockIssue(item)) { <p role="status" style="color: #a43d2c; margin-top: 8px; font-size: 13px;">{{ stockIssue(item) }}</p> }
                   <div class="cart-item__footer-row">
                     <div class="qty-selector">
                       <button class="qty-selector__btn" type="button" (click)="changeQty(item, -1)" aria-label="Giảm số lượng">-</button>
@@ -124,7 +130,7 @@
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             <path d="M9 11l2 2 4-4" />
           </svg>
-          <p class="cart-guarantee__text">Yêu cầu đổi trả trong 48 giờ sau khi đơn được giao thành công; hoàn tiền trong 4 - 5 ngày làm việc sau khi hàng đạt kiểm tra.</p>
+          <p class="cart-guarantee__text">Yêu cầu đổi / trả trong 30 ngày từ khi giao hàng thành công, tối đa 2 lượt mỗi sản phẩm. CSKH xác nhận phương án xử lý.</p>
         </div>
       </div>
       <div class="cart-sidebar">

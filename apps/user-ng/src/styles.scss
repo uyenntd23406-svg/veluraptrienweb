@@ -18,7 +18,6 @@ app-product-detail-page,
 app-cart-page,
 app-collections-page,
 app-account-profile-page,
-app-account-orders-page,
 app-wishlist-page,
 app-chatbot-page,
 app-contact-page,
@@ -26,9 +25,8 @@ app-policies-page,
 app-offers-page,
 app-ai-suggestions-page,
 app-style-quiz-page,
-app-checkout-shipping-page,
-app-checkout-otp-page,
-app-checkout-confirm-page {
+app-purchase-flow,
+app-order-flow {
   display: block;
   width: 100%;
 }

@@ -102,15 +102,21 @@ export function createOrderService({ repository }: { repository: OrderRepository
  * Validate an admin order status-change body.
  */
 export function validateStatusChange(body: JsonObject = {}) {
-  if (!ORDER_STATUSES.includes(body.status as string)) {
+  let targetStatus = String(body.status || "");
+  if (!ORDER_STATUSES.includes(targetStatus)) {
     throw validationError("status", `Must be one of: ${ORDER_STATUSES.join(", ")}`);
   }
+  if (targetStatus === "processing") {
+    targetStatus = "preparing";
+  } else if (targetStatus === "delivery_failed") {
+    targetStatus = "failed_delivery";
+  }
   const trackingCode = optionalText(body.trackingCode, 100);
-  if (body.status === "shipping" && !trackingCode) {
+  if (targetStatus === "shipping" && !trackingCode) {
     throw validationError("trackingCode", "Tracking code is required for shipping");
   }
   return {
-    status: body.status as string,
+    status: targetStatus,
     reason: requireReason(body.reason),
     trackingCode,
     expectedVersion: requireVersion(body.expectedVersion)
@@ -118,8 +124,11 @@ export function validateStatusChange(body: JsonObject = {}) {
 }
 
 function parseListFilters(searchParams: URLSearchParams): JsonObject {
-  const status = searchParams.get("status") || "";
+  let status = searchParams.get("status") || "";
   if (status && !ORDER_STATUSES.includes(status)) throw validationError("status", "Invalid status filter");
+  if (status === "processing") status = "preparing";
+  if (status === "delivery_failed") status = "failed_delivery";
+  if (status === "waiting_payment") status = "pending";
   const from = parseDate(searchParams.get("from"), "from");
   const to = parseDate(searchParams.get("to"), "to");
   if (from && to && from > to) throw validationError("date", "from cannot be after to");

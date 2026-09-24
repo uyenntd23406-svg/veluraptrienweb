@@ -73,11 +73,18 @@ export interface AdminOrderRow {
   shipping_phone?: string;
   shipping_address?: string;
   tracking_code?: string | null;
+  payment_method?: string;
+  payment_type?: string;
+  is_handed_over?: boolean;
+  handed_over_at?: string | null;
+  contact_result?: string | null;
+  stock_shortage_note?: string | null;
+  carrier_note?: string | null;
   total_amount?: number;
   version?: number;
   payments?: AdminOrderPayment[];
   items?: Array<{ product_name?: string; quantity?: number; unit_price?: number }>;
-  history?: Array<{ new_status?: string; changed_at?: string; note?: string; trigger_type?: string }>;
+  history?: Array<{ new_status?: string; changed_at?: string; note?: string; trigger_type?: string; actor_role?: string; actor?: string }>;
 }
 
 export interface AdminReturnRow {
@@ -646,7 +653,11 @@ export class AdminApiService {
    * Lists admin orders with the original filter query.
    */
   listOrders(params: Record<string, string> = {}): Observable<AdminListPayload<AdminOrderRow>> {
-    return this.http.get<AdminListPayload<AdminOrderRow>>(`${this.baseUrl}/api/v1/admin/orders`, { params: this.params(params) });
+    const query = { ...params };
+    if (query['status'] === 'processing') query['status'] = 'preparing';
+    if (query['status'] === 'delivery_failed') query['status'] = 'failed_delivery';
+    if (query['status'] === 'waiting_payment') query['status'] = 'pending';
+    return this.http.get<AdminListPayload<AdminOrderRow>>(`${this.baseUrl}/api/v1/admin/orders`, { params: this.params(query) });
   }
 
   /**

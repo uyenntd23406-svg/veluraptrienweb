@@ -1,0 +1,8 @@
+[mcp_servers.Atlassian]
+url = "https://mcp.atlassian.com/v1/mcp"
+
+[mcp_servers.GitLab]
+url = "https://gitlab.com/api/v4/mcp"
+
+[mcp_servers.GitLab.http_headers]
+X-Gitlab-Mcp-Server-Tool-Name-Prefix = "gitlab_"

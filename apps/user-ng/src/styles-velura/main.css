@@ -33,7 +33,6 @@
 @import "./components/_account.css";
 @import "./components/_quiz.css";
 @import "./components/_quiz-popup.css";
-@import "./components/_my-orders.css";
 @import "./components/_product-review.css";
 @import "./components/_search-dropdown.css";
 
@@ -43,13 +42,10 @@
 @import "./pages/_success.css";
 @import "./pages/_payment-failed.css";
 @import "./pages/_ai-suggestions.css";
-@import "./pages/_return-request.css";
 @import "./pages/_blog.css";
 @import "./pages/_about.css";
 @import "./pages/_cart.css";
 @import "./pages/_wishlist.css";
-@import "./pages/_track-order.css";
-@import "./pages/_order-detail.css";
 @import "./pages/_collections.css";
 @import "./pages/_offers-center.css";
 
@@ -61,13 +57,10 @@
 
 /* Các trang mới gộp từ nhánh main */
 @import "./pages/_ai-suggestions.css";
-@import "./pages/_return-request.css";
 @import "./pages/_blog.css";
 @import "./pages/_about.css";
 @import "./pages/_cart.css";
 @import "./pages/_wishlist.css";
-@import "./pages/_track-order.css";
-@import "./pages/_order-detail.css";
 
 
 /* Responsive overrides (must be last) */

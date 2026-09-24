@@ -1,5 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { UserSession } from '../models/user-session.interface';
+import { isUserPreview } from '../utils/preview-mode';
 
 /**
  * Session ViewModel store. No HTTP. Auth API belongs in a dedicated command service later.
@@ -45,6 +46,15 @@ export class AuthService {
   }
 
   private readSession(): UserSession | null {
+    if (isUserPreview()) {
+      return {
+        userId: 'preview-user-001',
+        email: 'nguyenan@example.com',
+        fullName: 'Nguyễn An',
+        phone: '0901234567',
+        avatarUrl: null,
+      };
+    }
     const token = localStorage.getItem('velura_token');
     const raw = localStorage.getItem('velura_user');
     if (!token || !raw) {

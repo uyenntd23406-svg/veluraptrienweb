@@ -1,5 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { showToast } from '../utils/toast';
+import { isPreviewMode } from '../utils/preview-mode';
 
 export interface CartLine {
   variant_id: string;
@@ -42,6 +43,36 @@ export class CartStore {
   readonly subtotal = computed(() =>
     this.items().reduce((sum, line) => sum + line.unit_price * line.quantity, 0),
   );
+
+  constructor() {
+    const previewItems: CartLine[] = [
+        {
+          variant_id: 'preview-linen-M-Kem',
+          product_id: 'preview-linen',
+          product_name: 'Áo sơ mi Linen',
+          product_image: '/assets/images/placeholder.jpg',
+          quantity: 1,
+          unit_price: 390000,
+          size: 'M',
+          color: 'Kem',
+        },
+        {
+          variant_id: 'preview-skirt-S-Nâu',
+          product_id: 'preview-skirt',
+          product_name: 'Chân váy dáng A',
+          product_image: '/assets/images/placeholder.jpg',
+          quantity: 1,
+          unit_price: 450000,
+          size: 'S',
+          color: 'Nâu',
+        },
+    ];
+    if (isPreviewMode()) {
+      this.items.set(previewItems);
+    } else if (this.items().some((item) => item.variant_id.startsWith('preview-'))) {
+      this.persist(this.items().filter((item) => !item.variant_id.startsWith('preview-')));
+    }
+  }
 
   /**
    * Replaces the header badge from an explicit count (legacy callers).
