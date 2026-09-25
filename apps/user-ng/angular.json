@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "720f5f77-29b2-4859-8f81-6cbafacc1a56"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -60,6 +61,17 @@
                 "fonts": false
               }
             },
+            "mock": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.mock.ts"
+                }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -73,6 +85,9 @@
           "configurations": {
             "production": {
               "buildTarget": "user-ng:build:production"
+            },
+            "mock": {
+              "buildTarget": "user-ng:build:mock"
             },
             "development": {
               "buildTarget": "user-ng:build:development"

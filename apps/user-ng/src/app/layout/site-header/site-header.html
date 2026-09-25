@@ -102,9 +102,12 @@
           @if (!isLoggedIn()) {
             <a routerLink="/auth/signin" class="account-dropdown-item">Đăng nhập</a>
             <a routerLink="/auth/signup" class="account-dropdown-item">Đăng ký</a>
+            <a routerLink="/account/track" class="account-dropdown-item">Tra cứu đơn hàng</a>
           } @else {
             <span class="account-dropdown-item" aria-current="true">{{ displayName() }}</span>
-            <a routerLink="/account/profile" class="account-dropdown-item">Tài khoản</a>
+            <a routerLink="/account/profile" class="account-dropdown-item">Tài khoản cá nhân</a>
+            <a routerLink="/account/orders" class="account-dropdown-item">Đơn hàng của tôi</a>
+            <a routerLink="/account/track" class="account-dropdown-item">Tra cứu đơn hàng</a>
             <button type="button" class="account-dropdown-item" (click)="logout()">Đăng xuất</button>
           }
         </div>

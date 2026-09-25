@@ -1,0 +1,12 @@
+{
+  "email": "demo.member@velura.local",
+  "phone": "0912345678",
+  "password": "Demo1234@",
+  "user": {
+    "user_id": "mock-member-001",
+    "email": "demo.member@velura.local",
+    "phone": "0912345678",
+    "full_name": "Velura Demo Member",
+    "role": "member"
+  }
+}
